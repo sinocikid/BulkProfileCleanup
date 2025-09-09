@@ -15,16 +15,16 @@ PowerShell script to safely list and delete stale local (and optionally domain) 
 
 ```powershell
 # To run when scripts are disallowed:
-powershell -ExecutionPolicy Bypass -File .\BulkProfileCleanup.ps1
+powershell -ExecutionPolicy Bypass -File .\bulk_profile_cleanup.ps1
 
 # Dry-run
-.\BulkProfileCleanup.ps1
+.\bulk_profile_cleanup.ps1
 
 # Actual delete of profiles older than 60 days
-.\BulkProfileCleanup.ps1 -OlderThanDays 60 -Delete
+.\bulk_profile_cleanup.ps1 -OlderThanDays 60 -Delete
 
 # Include domain users in cleanup
-.\BulkProfileCleanup.ps1 -IncludeDomain -OlderThanDays 90 -Delete
+.\bulk_profile_cleanup.ps1 -IncludeDomain -OlderThanDays 90 -Delete
 
 # Delete specific users regardless of time
-.\BulkProfileCleanup.ps1 -IncludeUsers "user1","user2" -Delete
+.\bulk_profile_cleanup.ps1 -IncludeUsers "user1","user2" -Delete
