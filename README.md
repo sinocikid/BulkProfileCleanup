@@ -4,12 +4,12 @@ PowerShell script to safely list and delete stale local (and optionally domain) 
 
 ## Features
 
-- Dry-run by default; only delete when `-Delete` is specified
-- Filters by last login time (default: 30 days)
-- Supports inclusion/exclusion of users and domain users
-- Protects built-in and currently logged-in users
-- Uses modern CIM for performance and reliability
-- Requires Administrator privileges
+* Requires Administrator privileges
+* Dry-run by default; only delete when `-Delete` is specified
+* Filters by last login time (default: 30 days)
+* Supports inclusion/exclusion of users and domain users
+* Protects built-in and currently logged-in users
+* Uses modern CIM for performance and reliability
 
 ## Usage
 
@@ -28,3 +28,4 @@ powershell -ExecutionPolicy Bypass -File .\bulk_profile_cleanup.ps1
 
 # Delete specific users regardless of time
 .\bulk_profile_cleanup.ps1 -IncludeUsers "user1","user2" -Delete
+```
