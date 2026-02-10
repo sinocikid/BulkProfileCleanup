@@ -18,8 +18,8 @@ If you encounter the error "running scripts is disabled on this system", you can
 
 param(
   [int]$OlderThanDays = 30,
-  [string[]]$IncludeUsers = @(),   # only these usernames; overrides time cutoff
-  [string[]]$ExcludeUsers = @(),   # extra excludes
+  [string[]]$IncludeUsers = @(),   # user or DOMAIN\user; overrides time cutoff for matched entries
+  [string[]]$ExcludeUsers = @(),   # user or DOMAIN\user exclusions
   [switch]$IncludeDomain,          # include domain users' local profiles
   [switch]$Delete                  # actually delete
 )
@@ -40,7 +40,32 @@ $builtIn = @(
   'All Users','WDAGUtilityAccount','systemprofile',
   'LocalService','NetworkService','defaultuser0', $env:USERNAME
 )
-$exclude = $builtIn + $ExcludeUsers
+
+function Split-AccountRules {
+  param([string[]]$Values)
+
+  $qualified = @()
+  $unqualified = @()
+
+  foreach ($value in $Values) {
+    if ([string]::IsNullOrWhiteSpace($value)) { continue }
+    $entry = $value.Trim()
+    if ($entry -match '\\') {
+      $qualified += $entry
+    } else {
+      $unqualified += $entry
+    }
+  }
+
+  [pscustomobject]@{
+    Qualified   = $qualified
+    Unqualified = $unqualified
+    HasAny      = ($qualified.Count + $unqualified.Count) -gt 0
+  }
+}
+
+$excludeRules = Split-AccountRules -Values ($builtIn + $ExcludeUsers)
+$includeRules = Split-AccountRules -Values $IncludeUsers
 
 # Get profiles via CIM (faster, modern)
 $profiles = Get-CimInstance Win32_UserProfile | Where-Object {
@@ -86,17 +111,24 @@ foreach ($p in $profiles) {
   # derive username
   $userName = if ($name) { ($name -split '\\')[-1] } else { Split-Path $path -Leaf }
 
+  $matchesQualifiedInclude = $name -and ($includeRules.Qualified -contains $name)
+  $matchesUnqualifiedInclude = $includeRules.Unqualified -contains $userName
+  $matchesInclude = $matchesQualifiedInclude -or $matchesUnqualifiedInclude
+
   # exclude system/current/extra
-  if ($exclude -contains $userName) { continue }
+  $matchesQualifiedExclude = $name -and ($excludeRules.Qualified -contains $name)
+  $matchesUnqualifiedExclude = $excludeRules.Unqualified -contains $userName
+  if ($matchesQualifiedExclude -or $matchesUnqualifiedExclude) { continue }
 
   # only local by default
   if (-not $IncludeDomain) {
-    if ($name -and ($name -notlike "$computer\*")) { continue }
+    $isLocalAccount = (-not $name) -or ($name -like "$computer\*")
+    if (-not $isLocalAccount -and -not $matchesInclude) { continue }
   }
 
   # IncludeUsers takes precedence
-  if ($IncludeUsers.Count -gt 0) {
-    if ($IncludeUsers -notcontains $userName) { continue }
+  if ($includeRules.HasAny) {
+    if (-not $matchesInclude) { continue }
     # ignore time cutoff when explicitly included
   } else {
     if ($last -ge $cutoff) { continue }
