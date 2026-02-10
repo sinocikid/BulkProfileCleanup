@@ -10,6 +10,7 @@ PowerShell script to safely list and delete stale local (and optionally domain) 
 * Supports inclusion/exclusion of users and domain users
 * Protects built-in and currently logged-in users
 * Uses modern CIM for performance and reliability
+* `-IncludeUsers` / `-ExcludeUsers` accept either `user` or `DOMAIN\\user` (qualified entries match exact account; unqualified entries match by username)
 
 ## Usage
 
