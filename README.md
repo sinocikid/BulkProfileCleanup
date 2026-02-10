@@ -1,8 +1,3 @@
-diff --git a/README.md b/README.md
-index 107453e22e2d362741c2fb2dc982d79c137541d6..750808825a6a9e9bc73b24a83d5f016e595bd80e 100644
---- a/README.md
-+++ b/README.md
-@@ -1,31 +1,32 @@
  # BulkProfileCleanup
  
  PowerShell script to safely list and delete stale local (and optionally domain) user profiles on Windows.
